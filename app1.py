@@ -4,9 +4,9 @@ from agno.models.groq import Groq
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.yfinance import YFinanceTools
 import os
+import markdown
 import re
 import yfinance as yf
-import markdown
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -72,73 +72,60 @@ def analyze():
         - **Technical analysis & trends**
         - **Follow this format exactly for every report**:
 
+        1. **Company Overview**
+        - Market Cap: [Market Cap Value]
+        - Sector: [Sector]
+        - Industry: [Industry]
+        - Key Financials:
+        - Revenue (TTM): [Revenue Value]
+        - Net Income (TTM): [Net Income Value]
+        - EPS (TTM): [EPS Value]
+
+        2. **Stock Performance**
+        - {price_message}
+        - 52-Week Range: [52-Week Range]
+        - Volume (Avg.): [Average Volume]
+        - Market Cap: [Market Cap]
+
+        3. **Recent News**
+        - **News 1: [Headline]**
+        - **Summary**: [Short summary for News 1]
+        - **Source**: [Source 1]
+
+        - **News 2: [Headline]**
+        - **Summary**: [Short summary for News 2]
+        - **Source**: [Source 2]
+
+        - **News 3: [Headline]**
+        -**Summary**: [Short summary for News 3]
+        - **Source**: [Source 3]
+
+        4. **Analyst Ratings**
+        - Analyst Consensus: [Buy/Hold/Sell]
+        - Average Price Target: [Average Price Target]
+        - Breakdown: 
+        - Buy: [Percentage Buy] 
+        - Hold: [Percentage Hold]
+        - Sell: [Percentage Sell]
+
+        5. **Technical Trend Analysis**
+        - 50-Day Moving Average: [50-Day MA Value]
+        - 200-Day Moving Average: [200-Day MA Value]
+        - RSI: [RSI Value] (Neutral/Overbought/Oversold)
+        - MACD: [MACD Analysis - Bullish/Bearish]
+
+        6. **Final Buy/Hold/Sell Recommendation**
+        - Recommendation: [Buy/Hold/Sell]
+        - [Provide reasoning for the recommendation based on news, technicals, and market sentiment.]
+
         - Do NOT use DuckDuckGo for stock prices. Only use it for real-time stock-related news.
         - If real-time price is missing, use the last closing price with a note: "**Note: Real-time price data unavailable. Using last closing price instead.**"
         - Ensure the response is in **clean Markdown format** without any extraneous information.
-        - Ensure the **Recent News** section always follows this exact format with numbered news items, headlines, summaries, and sources as a website links.
+        - Ensure the **Recent News** section always follows this exact format with numbered news items, headlines, summaries, and sources with links.
 
-        Strictly Return your response in **clean Json format**.
-        Dont change any key values in the json.and also dont include any other keys.
-
-        Expected json format::
-
-        {{
-            "Company Overview": {{
-                "Market Cap": ""
-                "Sector": ""
-                "Industry": ""
-                "Key Financials":{{
-                    "Revenue (TTM)": ""
-                    "Net Income (TTM)": ""
-                    "EPS (TTM)": ""
-                }}
-            }},
-            "Stock Performance": {{
-                {price_message}
-                "52-Week Range" : ""
-                "Volume (Avg.)" : ""
-                "Market Cap" : ""
-            }},
-            "Recent News": [
-            {{
-                "News 1" : ""
-                "Summary" : ""
-                "Source" : ""
-            }},
-            {{
-                "News 2" : ""
-                "Summary" : ""
-                "Source" : ""
-            }},
-            {{
-                "News 3" : ""
-                "Summary" : ""
-                "Source" : ""
-            }}],
-            "Analyst Ratings" : {{
-                "Analyst Consensus" : "",
-                "Average Price Target" : ""
-                "Breakdown:" {{
-                    "Buy Percentage" : ""
-                    "Hold Percentage" : ""
-                    "Sell Percentage" : ""
-                }}
-            }},
-            "Technical Trend Analysis" : {{
-                "50-Day Moving Average" : ""
-                "200-Day Moving Average" : ""
-                "RSI" : ""
-                "MACD" : ""
-            }},
-            "Final Buy/Hold/Sell Recommendation" : {{
-                "Recommendation" : ""
-                "Reasoning" : ""
-            }}
-        }}
-        Note: please dont display any other information outoff the json response
+        Return your response in **Markdown**. Make sure to format it with clear headings and bullet points, and keep the structure exactly as shown.
         """
 
-        # Run the agent with the structured prompt
         response = stock_analysis_agent.run(structured_prompt)
         analysis_content = response.content if hasattr(response, "content") else "No analysis available."
         
@@ -168,16 +155,9 @@ def analyze():
         # Replace missing data with placeholders or specific fallbacks
         analysis_content = analysis_content.replace("Not explicitly provided in the tool output.", "Data will be updated with the closest available info.")
         
-        # Convert markdown content to HTML
         markdown_content = markdown.markdown(analysis_content)
-        
-        # Clean up unnecessary tags
-        cleaned_content = re.sub(r'<p>|</p>', '', markdown_content)
-        cleaned_content = re.sub(r'<code>|</code>', '', cleaned_content)
-        cleaned_content = re.sub(r'<strong>|</strong>', '', cleaned_content)
+        cleaned_content = re.sub(r'```.*?```', '', markdown_content, flags=re.DOTALL)
         formatted_response = re.sub(r'<table>', '<table class="table table-bordered table-striped">', cleaned_content)
-        
-        print(formatted_response)
 
         return jsonify({
             'result': formatted_response,
