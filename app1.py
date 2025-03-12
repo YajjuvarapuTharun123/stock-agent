@@ -75,7 +75,7 @@ def analyze():
         - Do NOT use DuckDuckGo for stock prices. Only use it for real-time stock-related news.
         - If real-time price is missing, use the last closing price with a note: "**Note: Real-time price data unavailable. Using last closing price instead.**"
         - Ensure the response is in **clean Markdown format** without any extraneous information.
-        - Ensure the **Recent News** section always follows this exact format with numbered news items, headlines, summaries, and sources along with that website links.
+        - Ensure the **Recent News** section always follows this exact format with numbered news items, headlines, summaries, and sources as a website links.
 
         Strictly Return your response in **clean Json format**.
         Dont change any key values in the json.and also dont include any other keys.
@@ -104,17 +104,17 @@ def analyze():
                 "News 1" : ""
                 "Summary" : ""
                 "Source" : ""
-            }}
+            }},
             {{
                 "News 2" : ""
                 "Summary" : ""
                 "Source" : ""
-            }}
+            }},
             {{
                 "News 3" : ""
                 "Summary" : ""
                 "Source" : ""
-            }}]
+            }}],
             "Analyst Ratings" : {{
                 "Analyst Consensus" : "",
                 "Average Price Target" : ""
@@ -123,13 +123,13 @@ def analyze():
                     "Hold Percentage" : ""
                     "Sell Percentage" : ""
                 }}
-            }}
+            }},
             "Technical Trend Analysis" : {{
                 "50-Day Moving Average" : ""
                 "200-Day Moving Average" : ""
                 "RSI" : ""
                 "MACD" : ""
-            }}
+            }},
             "Final Buy/Hold/Sell Recommendation" : {{
                 "Recommendation" : ""
                 "Reasoning" : ""
@@ -137,6 +137,7 @@ def analyze():
         }}
         """
 
+        # Run the agent with the structured prompt
         response = stock_analysis_agent.run(structured_prompt)
         analysis_content = response.content if hasattr(response, "content") else "No analysis available."
         
@@ -166,9 +167,14 @@ def analyze():
         # Replace missing data with placeholders or specific fallbacks
         analysis_content = analysis_content.replace("Not explicitly provided in the tool output.", "Data will be updated with the closest available info.")
         
+        # Convert markdown content to HTML
         markdown_content = markdown.markdown(analysis_content)
-        cleaned_content = re.sub(r'```.*?```', '', markdown_content, flags=re.DOTALL)
+        
+        # Clean up unnecessary tags
+        cleaned_content = re.sub(r'<p>|</p>', '', markdown_content)
+        cleaned_content = re.sub(r'<code>|</code>', '', cleaned_content)
         formatted_response = re.sub(r'<table>', '<table class="table table-bordered table-striped">', cleaned_content)
+        
         print(formatted_response)
 
         return jsonify({
