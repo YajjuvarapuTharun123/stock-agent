@@ -129,8 +129,8 @@ $(document).ready(function () {
             plot_bgcolor: "#1e1e1e",
             paper_bgcolor: "#121212",
             font: { color: "#ffffff" },
-            xaxis: { title: "Date", color: "#ffffff", showgrid: false },
-            yaxis: { title: "Price (USD)", color: "#ffffff", showgrid: false },
+            xaxis: { title: "Date", color: "#ffffff", showgrid: false},
+            yaxis: { title: "Price (USD)", color: "#ffffff", showgrid: false},
             showlegend: true
         };
 

@@ -135,6 +135,7 @@ def analyze():
                 "Reasoning" : ""
             }}
         }}
+        Note: please dont display any other information outoff the json response
         """
 
         # Run the agent with the structured prompt
@@ -173,6 +174,7 @@ def analyze():
         # Clean up unnecessary tags
         cleaned_content = re.sub(r'<p>|</p>', '', markdown_content)
         cleaned_content = re.sub(r'<code>|</code>', '', cleaned_content)
+        cleaned_content = re.sub(r'<strong>|</strong>', '', cleaned_content)
         formatted_response = re.sub(r'<table>', '<table class="table table-bordered table-striped">', cleaned_content)
         
         print(formatted_response)
