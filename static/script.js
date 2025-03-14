@@ -87,7 +87,12 @@ $(document).ready(function () {
           if (response.error) {
             $("#resultContent").html(`<div class="alert alert-danger">${response.error}</div>`);
           } else {
-            $("#resultContent").html(response.result);
+            if(response.result){
+                const analysisHTML = buildAnalysisHTML(response.result);
+                $("#resultContent").html(analysisHTML);
+            } else {
+                $("#resultContent").html("<div class='alert alert-warning'>No analysis data available.</div>");
+            }
             $("#disclaimer").html(response.disclaimer);
   
             // Render stock chart
@@ -152,6 +157,74 @@ $(document).ready(function () {
       $("#closeFullScreenGraphBtn").off("click").on("click", function () {
         $("#fullPageGraphContainer").fadeOut();
       });
+    }
+  
+    // Build formatted HTML from analysis JSON in desired order
+    function buildAnalysisHTML(data) {
+      // Use the fixed order as defined in the JSON format.
+      const desiredOrder = [
+        "Company Overview",
+        "Stock Performance",
+        "Recent News",
+        "Analyst Ratings",
+        "Technical Trend Analysis",
+        "Final Buy/Hold/Sell Recommendation"
+      ];
+      let html = '';
+      desiredOrder.forEach(section => {
+        if (data[section] !== undefined) {
+          html += `<div class="card analysis-section">
+                      <div class="card-header">
+                        <h5 class="mb-0">${section}</h5>
+                      </div>
+                      <div class="card-body">
+                        ${buildObjectHTML(data[section], section)}
+                      </div>
+                    </div>`;
+        }
+      });
+      return html;
+    }
+  
+    // Recursively build HTML.
+    // For keys (except "Source"), if the string value contains a duplicate label (separated by "–" or ":"), use only the text after the delimiter.
+    function buildObjectHTML(obj, parentKey = "") {
+      let html = '';
+      if (typeof obj === 'object' && !Array.isArray(obj)) {
+        html += '<div class="analysis-details">';
+        for (const key in obj) {
+          let value = obj[key];
+          // For keys other than "Source", if value is a string, remove duplicate label info.
+          if (key.toLowerCase() !== "source" && typeof value === "string") {
+            if (value.indexOf('–') > -1) {
+              let parts = value.split('–');
+              value = parts[parts.length - 1].trim();
+            } else if (value.indexOf(':') > -1) {
+              let parts = value.split(':');
+              value = parts[parts.length - 1].trim();
+            }
+          }
+          // Format "Source" as clickable link.
+          if (key.toLowerCase() === "source" && typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://"))) {
+            value = `<a href="${value}" target="_blank">${value}</a>`;
+          }
+          html += `<div class="analysis-detail"><strong>${key}:</strong> `;
+          if (typeof value === 'object') {
+            html += buildObjectHTML(value, key);
+          } else {
+            html += value;
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+      } else if (Array.isArray(obj)) {
+        obj.forEach((item, index) => {
+          html += `<div class="analysis-item"><strong>Item ${index + 1}:</strong> ${buildObjectHTML(item)}</div>`;
+        });
+      } else {
+        html += `<span>${obj}</span>`;
+      }
+      return html;
     }
   });
   

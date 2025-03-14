@@ -181,3 +181,25 @@ button.btn-primary:hover {
     height: 50vh;
   }
 }
+
+/* Analysis Section Styling */
+/* Updated for better contrast on a dark background */
+.analysis-section {
+  background-color: #f8f9fa;  /* light background */
+  color: #212529;             /* dark text */
+  border: 1px solid #ced4da;
+  margin-bottom: 20px;
+}
+.analysis-section .card-header {
+  background-color: #007bff;
+  color: #ffffff;
+}
+.analysis-details {
+  margin-left: 10px;
+}
+.analysis-detail {
+  margin-bottom: 5px;
+}
+.analysis-subsection {
+  margin-bottom: 8px;
+}
